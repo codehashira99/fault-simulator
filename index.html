@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Normal Fault Cross-Section Animation</title>
+    
+        <link rel="stylesheet" href="index.css">
+    
+</head>
+<body>
+    <div id="container">
+        <div class="title">Normal Fault Cross-Section</div>
+        
+        <div class="controls">
+            <h3>Geological Controls</h3>
+            
+            <div class="control-group">
+                <label>Fault Angle (θ): <span class="value-display" id="angleValue">60°</span></label>
+                <input type="range" id="angleSlider" min="45" max="85" value="60">
+            </div>
+            
+            <div class="control-group">
+                <label>Displacement: <span class="value-display" id="slipValue">0m</span></label>
+                <input type="range" id="slipSlider" min="0" max="100" value="0">
+            </div>
+            
+            <div class="control-group">
+                <label>Animation Speed: <span class="value-display" id="speedValue">1x</span></label>
+                <input type="range" id="speedSlider" min="0.2" max="3" step="0.2" value="1">
+            </div>
+            
+            <div class="control-group">
+                <button id="animateBtn">🌍 Simulate Earthquake</button>
+                <button id="resetBtn">🔄 Reset Terrain</button>
+            </div>
+
+            <!-- Add this line in your controls div, after the existing buttons -->
+            <button id="darkModeBtn">🌙 Dark Mode</button>
+        </div>
+        
+        <div class="info">
+            <strong>Normal Fault Animation:</strong><br>
+            • Mouse: Rotate camera view<br>
+            • Wheel: Zoom in/out<br>
+            • Watch hanging wall drop down<br>
+            • Observe surface displacement
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        class NormalFaultSystem {
+            constructor() {
+                this.scene = new THREE.Scene();
+                this.camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+                this.renderer = new THREE.WebGLRenderer({ antialias: true });
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.renderer.setClearColor(0x87CEEB, 1);
+                this.renderer.shadowMap.enabled = true;
+                this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                document.getElementById('container').appendChild(this.renderer.domElement);
+
+                // Animation properties
+                this.faultAngle = 60;
+                this.displacement = 0;
+                this.animationSpeed = 1;
+                this.isAnimating = false;
+
+                this.setupScene();
+              
+                this.createTerrain();
+                this.addSurfaceFeatures();
+                this.setupControls();
+                this.animate();
+            }
+
+            setupScene() {
+                // Lighting setup for educational clarity
+                const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+                this.scene.add(ambientLight);
+
+                // Main directional light (sun)
+                const sunLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                sunLight.position.set(20, 20, 10);
+                sunLight.castShadow = true;
+                sunLight.shadow.mapSize.width = 2048;
+                sunLight.shadow.mapSize.height = 2048;
+                sunLight.shadow.camera.near = 0.5;
+                sunLight.shadow.camera.far = 100;
+                sunLight.shadow.camera.left = -20;
+                sunLight.shadow.camera.right = 20;
+                sunLight.shadow.camera.top = 20;
+                sunLight.shadow.camera.bottom = -20;
+                this.scene.add(sunLight);
+
+                // Camera positioning for cross-section view
+                this.camera.position.set(15, 8, 15);
+                this.camera.lookAt(0, 0, 0);
+            }
+
+            createTerrain() {
+                // Create the two main geological blocks
+                
+                // Footwall (left side - stays relatively stable)
+                const footwallGeometry = new THREE.BoxGeometry(8, 6, 4);
+                const footwallMaterial = new THREE.MeshLambertMaterial({ 
+                    color: 0x8B4513, // Brown earth color
+                    transparent: true,
+                    opacity: 0.9 
+                });
+                this.footwall = new THREE.Mesh(footwallGeometry, footwallMaterial);
+                this.footwall.position.set(-4, 0, 0);
+                this.footwall.castShadow = true;
+                this.footwall.receiveShadow = true;
+                this.scene.add(this.footwall);
+
+                // Hanging wall (right side - will drop down)
+                const hangingwallGeometry = new THREE.BoxGeometry(8, 6, 4);
+                const hangingwallMaterial = new THREE.MeshLambertMaterial({ 
+                    color: 0xA0522D, // Slightly different brown
+                    transparent: true,
+                    opacity: 0.9 
+                });
+                this.hangingwall = new THREE.Mesh(hangingwallGeometry, hangingwallMaterial);
+                this.hangingwall.position.set(4, 0, 0);
+                this.hangingwall.castShadow = true;
+                this.hangingwall.receiveShadow = true;
+                this.scene.add(this.hangingwall);
+
+                // Surface layer (grass/topsoil)
+                this.createSurfaceLayer();
+                
+                // Fault plane visualization
+                this.createFaultPlane();
+
+                // Store initial positions
+                this.initialFootwallPos = this.footwall.position.clone();
+                this.initialHangingwallPos = this.hangingwall.position.clone();
+            }
+
+            createSurfaceLayer() {
+                // Green surface layer on footwall
+                const surfaceGeometry1 = new THREE.BoxGeometry(8, 0.5, 4);
+                const surfaceMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 });
+                this.surface1 = new THREE.Mesh(surfaceGeometry1, surfaceMaterial);
+                this.surface1.position.set(-4, 3.25, 0);
+                this.surface1.castShadow = true;
+                this.scene.add(this.surface1);
+
+                // Green surface layer on hanging wall
+                const surfaceGeometry2 = new THREE.BoxGeometry(8, 0.5, 4);
+                this.surface2 = new THREE.Mesh(surfaceGeometry2, surfaceMaterial);
+                this.surface2.position.set(4, 3.25, 0);
+                this.surface2.castShadow = true;
+                this.scene.add(this.surface2);
+
+                this.initialSurface1Pos = this.surface1.position.clone();
+                this.initialSurface2Pos = this.surface2.position.clone();
+            }
+
+            createFaultPlane() {
+                const faultGeometry = new THREE.PlaneGeometry(8, 8);
+                const faultMaterial = new THREE.MeshBasicMaterial({ 
+                    color: 0xff4444,
+                    transparent: true,
+                    opacity: 0.6,
+                    side: THREE.DoubleSide
+                });
+                this.faultPlane = new THREE.Mesh(faultGeometry, faultMaterial);
+                this.updateFaultPlane();
+                this.scene.add(this.faultPlane);
+            }
+
+            addSurfaceFeatures() {
+                this.surfaceObjects = [];
+
+                // House on footwall
+                this.createHouse(-4, 3.5, 0);
+                
+                // Trees
+                this.createTree(-6, 3.5, 1);
+                this.createTree(-2, 3.5, -1);
+                this.createTree(2, 3.5, 1);
+                this.createTree(6, 3.5, -1);
+            }
+
+            createHouse(x, y, z) {
+                const houseGroup = new THREE.Group();
+                
+                // House body
+                const houseGeometry = new THREE.BoxGeometry(1.5, 1, 1);
+                const houseMaterial = new THREE.MeshLambertMaterial({ color: 0xFFD700 });
+                const house = new THREE.Mesh(houseGeometry, houseMaterial);
+                house.position.set(0, 0, 0);
+                house.castShadow = true;
+                houseGroup.add(house);
+
+                // Roof
+                const roofGeometry = new THREE.ConeGeometry(1, 0.8, 4);
+                const roofMaterial = new THREE.MeshLambertMaterial({ color: 0xDC143C });
+                const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+                roof.position.set(0, 0.9, 0);
+                roof.rotation.y = Math.PI / 4;
+                roof.castShadow = true;
+                houseGroup.add(roof);
+
+                houseGroup.position.set(x, y, z);
+                this.scene.add(houseGroup);
+                this.surfaceObjects.push({object: houseGroup, initialPos: houseGroup.position.clone(), onHangingWall: x > 0});
+            }
+
+            createTree(x, y, z) {
+                const treeGroup = new THREE.Group();
+                
+                // Trunk
+                const trunkGeometry = new THREE.CylinderGeometry(0.1, 0.15, 1);
+                const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+                const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
+                trunk.position.set(0, 0, 0);
+                trunk.castShadow = true;
+                treeGroup.add(trunk);
+
+                // Leaves
+                const leavesGeometry = new THREE.SphereGeometry(0.6);
+                const leavesMaterial = new THREE.MeshLambertMaterial({ color: 0x228B22 });
+                const leaves = new THREE.Mesh(leavesGeometry, leavesMaterial);
+                leaves.position.set(0, 0.8, 0);
+                leaves.castShadow = true;
+                treeGroup.add(leaves);
+
+                treeGroup.position.set(x, y, z);
+                this.scene.add(treeGroup);
+                this.surfaceObjects.push({object: treeGroup, initialPos: treeGroup.position.clone(), onHangingWall: x > 0});
+            }
+
+            updateFaultPlane() {
+                const angleRad = (this.faultAngle * Math.PI) / 180;
+                this.faultPlane.rotation.z = angleRad - Math.PI/2;
+                this.faultPlane.position.set(0, 0, 0);
+            }
+
+            updateDisplacement() {
+                const angleRad = (this.faultAngle * Math.PI) / 180;
+                const displacementFactor = this.displacement / 100;
+                
+                // Calculate movement along fault plane
+                const horizontalMove = Math.cos(angleRad) * displacementFactor * 2;
+                const verticalMove = Math.sin(angleRad) * displacementFactor * 2;
+                
+                // Move hanging wall down and along fault
+                this.hangingwall.position.x = this.initialHangingwallPos.x + horizontalMove;
+                this.hangingwall.position.y = this.initialHangingwallPos.y - verticalMove;
+                
+                // Move surface layer with hanging wall
+                this.surface2.position.x = this.initialSurface2Pos.x + horizontalMove;
+                this.surface2.position.y = this.initialSurface2Pos.y - verticalMove;
+                
+                // Move surface objects
+                this.surfaceObjects.forEach(item => {
+                    if (item.onHangingWall) {
+                        item.object.position.x = item.initialPos.x + horizontalMove;
+                        item.object.position.y = item.initialPos.y - verticalMove;
+                    }
+                });
+
+                // Update fault plane position
+                this.updateFaultPlane();
+            }
+
+            setupControls() {
+                // Mouse controls
+                let isMouseDown = false;
+                let mouseX = 0, mouseY = 0;
+
+                document.addEventListener('mousedown', (e) => {
+                    isMouseDown = true;
+                    mouseX = e.clientX;
+                    mouseY = e.clientY;
+                });
+
+                document.addEventListener('mouseup', () => {
+                    isMouseDown = false;
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (isMouseDown) {
+                        const deltaX = e.clientX - mouseX;
+                        const deltaY = e.clientY - mouseY;
+                        
+                        // Rotate camera around scene
+                        const distance = this.camera.position.distanceTo(new THREE.Vector3(0, 0, 0));
+                        const phi = Math.atan2(this.camera.position.z, this.camera.position.x) - deltaX * 0.01;
+                        const theta = Math.max(0.1, Math.min(Math.PI - 0.1, Math.acos(this.camera.position.y / distance) + deltaY * 0.01));
+                        
+                        this.camera.position.x = distance * Math.sin(theta) * Math.cos(phi);
+                        this.camera.position.y = distance * Math.cos(theta);
+                        this.camera.position.z = distance * Math.sin(theta) * Math.sin(phi);
+                        this.camera.lookAt(0, 0, 0);
+                        
+                        mouseX = e.clientX;
+                        mouseY = e.clientY;
+                    }
+                });
+
+                document.addEventListener('wheel', (e) => {
+                    const factor = e.deltaY > 0 ? 1.1 : 0.9;
+                    this.camera.position.multiplyScalar(factor);
+                    this.camera.lookAt(0, 0, 0);
+                });
+
+                // UI Controls
+                document.getElementById('angleSlider').addEventListener('input', (e) => {
+                    this.faultAngle = parseInt(e.target.value);
+                    document.getElementById('angleValue').textContent = this.faultAngle + '°';
+                    this.updateDisplacement();
+                });
+
+                document.getElementById('slipSlider').addEventListener('input', (e) => {
+                    this.displacement = parseInt(e.target.value);
+                    document.getElementById('slipValue').textContent = this.displacement + 'm';
+                    this.updateDisplacement();
+                });
+
+                document.getElementById('speedSlider').addEventListener('input', (e) => {
+                    this.animationSpeed = parseFloat(e.target.value);
+                    document.getElementById('speedValue').textContent = this.animationSpeed + 'x';
+                });
+
+                document.getElementById('animateBtn').addEventListener('click', () => {
+                    this.simulateEarthquake();
+                });
+
+                document.getElementById('resetBtn').addEventListener('click', () => {
+                    this.resetTerrain();
+                });
+
+                // Add this at the end of your setupControls() function
+              document.getElementById('darkModeBtn').addEventListener('click', () => {
+               this.toggleDarkMode();
+});
+            }
+
+            simulateEarthquake() {
+                if (this.isAnimating) return;
+                
+                this.isAnimating = true;
+                const targetDisplacement = 80;
+                let currentDisp = 0;
+                
+                const animateStep = () => {
+                    if (currentDisp < targetDisplacement && this.isAnimating) {
+                        currentDisp += this.animationSpeed * 1.5;
+                        this.displacement = Math.min(currentDisp, targetDisplacement);
+                        
+                        document.getElementById('slipSlider').value = this.displacement;
+                        document.getElementById('slipValue').textContent = Math.round(this.displacement) + 'm';
+                        
+                        this.updateDisplacement();
+                        requestAnimationFrame(animateStep);
+                    } else {
+                        this.isAnimating = false;
+                    }
+                };
+                
+                animateStep();
+            }
+
+            resetTerrain() {
+                this.isAnimating = false;
+                this.displacement = 0;
+                
+                document.getElementById('slipSlider').value = 0;
+                document.getElementById('slipValue').textContent = '0m';
+                
+                // Reset all positions
+                this.hangingwall.position.copy(this.initialHangingwallPos);
+                this.surface2.position.copy(this.initialSurface2Pos);
+                
+                this.surfaceObjects.forEach(item => {
+                    item.object.position.copy(item.initialPos);
+                });
+                
+                this.updateFaultPlane();
+            }
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+                this.renderer.render(this.scene, this.camera);
+            }
+
+            onWindowResize() {
+                this.camera.aspect = window.innerWidth / window.innerHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+
+            toggleDarkMode() {
+    const body = document.body;
+    const button = document.getElementById('darkModeBtn');
+    
+    if (body.classList.contains('dark-mode')) {
+        // Switch to light mode
+        body.classList.remove('dark-mode');
+        this.renderer.setClearColor(0x87CEEB, 1); // Light blue sky
+        button.textContent = '🌙 Dark Mode';
+        
+        // Adjust lighting for day
+        this.scene.children.forEach(child => {
+            if (child.type === 'AmbientLight') {
+                child.intensity = 0.4;
+            }
+            if (child.type === 'DirectionalLight') {
+                child.intensity = 0.8;
+            }
+        });
+    } else {
+        // Switch to dark mode
+        body.classList.add('dark-mode');
+        this.renderer.setClearColor(0x0f0f23, 1); // Dark night sky
+        button.textContent = '☀️ Light Mode';
+        
+        // Adjust lighting for night
+        this.scene.children.forEach(child => {
+            if (child.type === 'AmbientLight') {
+                child.intensity = 0.2;
+            }
+            if (child.type === 'DirectionalLight') {
+                child.intensity = 0.4;
+            }
+        });
+    }
+}
+        }
+
+        // Initialize the system
+        const faultSystem = new NormalFaultSystem();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            faultSystem.onWindowResize();
+        });
+    </script>
+</body>
+</html>

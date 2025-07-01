@@ -1,0 +1,115 @@
+body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #87eba0, #98e3e8);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+        
+        #container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        
+        .controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 20px;
+            border-radius: 12px;
+            color: white;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        input[type="range"] {
+            width: 200px;
+            margin-bottom: 5px;
+            accent-color: #3498db;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        button:hover {
+            background: linear-gradient(45deg, #c0392b, #a93226);
+            transform: translateY(-2px);
+        }
+        
+        .info {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 15px;
+            border-radius: 12px;
+            color: white;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .value-display {
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .title {
+            position: absolute;
+            top: 20px;
+            right: 50%;
+            transform: translateX(50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 30px;
+            border-radius: 12px;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            backdrop-filter: blur(10px);
+        }
+
+        
+      .dark-mode {
+  background: radial-gradient(circle at 30% 30%, #2e003e, #1b0033, #1d0039) !important;
+}
+
+.dark-mode #container {
+  filter: brightness(1) contrast(1.1);
+}
+
+.dark-mode .title,
+.dark-mode .controls,
+.dark-mode .info {
+  background: rgba(58, 0, 88, 0.9) !important;
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
+  color: #e0d4f7;
+}
+
+.dark-mode canvas {
+  background-color: transparent !important;
+}
+
