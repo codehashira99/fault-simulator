@@ -1,7 +1,7 @@
 # Normal Fault Cross-Section Animation
 
 A 3D interactive visualization of normal fault geological processes built with Three.js, designed for educational purposes to demonstrate earthquake mechanics and geological displacement.
-
+Live demo link : (https://fault-simulator.vercel.app/)
 ## 🌍 Overview
 
 This project creates an immersive 3D simulation that visualizes how normal faults work in geology. Users can interactively control fault parameters and observe real-time geological displacement, making it an excellent educational tool for understanding seismic processes.
