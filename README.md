@@ -36,21 +36,7 @@ This project creates an immersive 3D simulation that visualizes how normal fault
 ### Prerequisites
 - Modern web browser with WebGL support
 - No additional installations required
-
-### Running the Application
-1. Clone this repository:
-   ```bash
-   git clone [your-repository-url]
-   cd normal-fault-visualization
-   ```
-
-2. Open `index.html` in your web browser
-   - Double-click the file, or
-   - Use a local server (recommended):
-     ```bash
-     python -m http.server 8000
-     # Then visit http://localhost:8000
-     ```
+-just right click and choose open with live server to run the project in a code editor(vs code) after having it setup locally.
 
 ## 🎮 Usage Guide
 
