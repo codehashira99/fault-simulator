@@ -1,7 +1,9 @@
 # Normal Fault Cross-Section Animation
 
 A 3D interactive visualization of normal fault geological processes built with Three.js, designed for educational purposes to demonstrate earthquake mechanics and geological displacement.
+
 Live demo link : (https://fault-simulator.vercel.app/)
+
 ## 🌍 Overview
 
 This project creates an immersive 3D simulation that visualizes how normal faults work in geology. Users can interactively control fault parameters and observe real-time geological displacement, making it an excellent educational tool for understanding seismic processes.
@@ -13,6 +15,7 @@ This project creates an immersive 3D simulation that visualizes how normal fault
 - **3D geological cross-section** showing footwall and hanging wall movement
 - **Surface displacement animation** demonstrating earthquake effects
 - **Interactive camera controls** (mouse rotation, zoom)
+- -**DARK MODE**
 
 ### Educational Controls
 - **Fault Angle Adjustment** (45°-85°) - Modify the dip angle of the fault plane
@@ -99,21 +102,6 @@ Normal faults occur when the Earth's crust is under **extensional stress**, caus
 - **Fault Plane**: The fracture surface along which movement occurs
 - **Displacement**: The amount of movement along the fault
 
-### Real-World Applications
-This visualization helps understand:
-- Earthquake mechanics and surface effects
-- Geological surveying and hazard assessment
-- Mining and construction considerations in fault zones
-- Educational concepts in earth sciences
-
-## 🎯 Project Goals
-
-This project was developed to:
-- Create an engaging educational tool for geology students
-- Demonstrate modern web-based 3D visualization techniques
-- Provide interactive learning experiences for complex geological concepts
-- Showcase real-time animation and user interaction capabilities
-
 ## 🔧 Future Enhancements
 
 Potential improvements for future versions:
@@ -152,5 +140,3 @@ Created as a geological visualization project demonstrating:
 - Scientific visualization principles
 
 ---
-
-**Note**: This visualization is designed for educational purposes and provides a simplified representation of normal fault mechanics. For detailed geological analysis, consult professional geological software and field data.
